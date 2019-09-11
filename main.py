@@ -4,6 +4,7 @@ import sys
 import math
 import random
 import time
+import numpy
 
 from collections import deque
 from pyglet import image
@@ -90,8 +91,12 @@ FACES = [
     ( 0, 0,-1),
 ]
 
+PRECISION = 0.1
 
-def normalize(position):
+def round_to_base(x, base=PRECISION):
+    return base * round(x/base)
+
+def normalize(position, func = lambda i: int(round(i))):
     """ Accepts `position` of arbitrary precision and returns the block
     containing that position.
 
@@ -104,8 +109,7 @@ def normalize(position):
     block_position : tuple of ints of len 3
 
     """
-    x, y, z = position
-    x, y, z = (int(round(x)), int(round(y)), int(round(z)))
+    x, y, z = map(func, position)
     return (x, y, z)
 
 
@@ -191,6 +195,19 @@ class Model(object):
                         self.add_block((x, y, z), t, immediate=False)
                 s -= d  # decrement side lenth so hills taper off
 
+    def pseudo_contains(self, position):
+        for j in range(int(1 / PRECISION)):
+            i = j * PRECISION
+            x, y, z = position
+            if (x + i, y, z) in self.world or \
+               (x - 1, y, z) in self.world or \
+               (x, y + i, z) in self.world or \
+               (x, y - i, z) in self.world or \
+               (x, y, z + i) in self.world or \
+               (x, y, z - i) in self.world:
+                return True
+        return False
+
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
         intersected it is returned, along with the block previously in the line
@@ -212,7 +229,7 @@ class Model(object):
         previous = None
         for _ in range(max_distance * m):
             key = normalize((x, y, z))
-            if key != previous and key in self.world:
+            if key != previous and key in self.world: # self.pseudo_contains(key): # 
                 return key, previous
             previous = key
             x, y, z = x + dx / m, y + dy / m, z + dz / m
@@ -429,15 +446,14 @@ class Model(object):
         while self.queue:
             self._dequeue()
 
-    def move_block(self, block):
+    def move_block(self, block, amt=PRECISION):
         x, y, z = block
-        y += 0.1
+        y += min(PRECISION, amt)
 
         texture = self.world[block]
 
         self.remove_block(block)
         self.add_block((x, y, z), texture)
-        
 
 
 class Window(pyglet.window.Window):
@@ -652,7 +668,8 @@ class Window(pyglet.window.Window):
                 d = (p[i] - np[i]) * face[i]
                 if d < pad:
                     continue
-                for dy in range(height):  # check each height
+                # for dy in range(height):  # check each height
+                for dy in numpy.arange(0, height, PRECISION):
                     op = list(np)
                     op[1] -= dy
                     op[i] += face[i]
