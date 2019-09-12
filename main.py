@@ -35,7 +35,7 @@ TERMINAL_VELOCITY = 50
 PLAYER_HEIGHT = 2
 
 if sys.version_info[0] >= 3:
-    range = range
+    xrange = range
 
 def cube_vertices(x, y, z, n):
     """ Return the vertices of the cube at position x, y, z with size 2*n.
@@ -94,9 +94,9 @@ FACES = [
 PRECISION = 0.1
 
 def round_to_base(x, base=PRECISION):
-    return base * round(x/base)
+    return round(base * round(x/base), 1)
 
-def normalize(position, func = lambda i: int(round(i))):
+def normalize(position, func = lambda i: int(round(i))): # func=round_to_base): 
     """ Accepts `position` of arbitrary precision and returns the block
     containing that position.
 
@@ -196,7 +196,8 @@ class Model(object):
                 s -= d  # decrement side lenth so hills taper off
 
     def pseudo_contains(self, position):
-        for j in range(int(1 / PRECISION)):
+        m = int(1 / PRECISION)
+        for j in range(m):
             i = j * PRECISION
             x, y, z = position
             if (x + i, y, z) in self.world or \
@@ -223,14 +224,16 @@ class Model(object):
             How many blocks away to search for a hit.
 
         """
-        m = 8
+        m = 8 # int(1 / PRECISION)
         x, y, z = position
         dx, dy, dz = vector
         previous = None
         for _ in range(max_distance * m):
+            # for i in range(int(-m / 2), int(m / 2)):
             key = normalize((x, y, z))
-            if key != previous and key in self.world: # self.pseudo_contains(key): # 
+            if key != previous and key in self.world: 
                 return key, previous
+            
             previous = key
             x, y, z = x + dx / m, y + dy / m, z + dz / m
         return None, None
@@ -448,12 +451,14 @@ class Model(object):
 
     def move_block(self, block, amt=PRECISION):
         x, y, z = block
-        y += min(PRECISION, amt)
+        y += amt # max(PRECISION, amt)
 
         texture = self.world[block]
 
         self.remove_block(block)
         self.add_block((x, y, z), texture)
+
+        print((x, y, z))
 
 
 class Window(pyglet.window.Window):
