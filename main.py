@@ -1,56 +1,19 @@
 import lib as lib3d
+from lib import key, mouse, pyglet, make_3d_textures
+
+GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
 
 class World(lib3d.Model):
-    def _initialize(self):
-        """ Initialize the world by placing all the blocks.
-
-        """
-        n = 80  # 1/2 width and height of world
-        s = 1  # step size
-        y = 0  # initial y height
-        for x in range(-n, n + 1, s):
-            for z in range(-n, n + 1, s):
-                # create a layer stone an grass everywhere.
-                self.add_block((x, y - 2, z), GRASS, immediate=False)
-                self.add_block((x, y - 3, z), GRASS, immediate=False)
-                self.add_block((x, y - 4, z), GRASS, immediate=False)
-                self.add_block((x, y - 5, z), GRASS, immediate=False)
-                self.add_block((x, y - 6, z), GRASS, immediate=False)
-                self.add_block((x, y - 7, z), GRASS, immediate=False)
-                self.add_block((x, y - 8, z), STONE, immediate=False)
-                if x in (-n, n) or z in (-n, n):
-                    # create outer walls.
-                    for dy in range(-2, 3):
-                        self.add_block((x, y + dy, z), STONE, immediate=False)
-
-        # generate the hills randomly
-        o = n - 10
-        for _ in range(120):
-            a = random.randint(-o, o)  # x position of the hill
-            b = random.randint(-o, o)  # z position of the hill
-            c = -1  # base of the hill
-            h = random.randint(1, 6)  # height of the hill
-            s = random.randint(4, 8)  # 2 * s is the side length of the hill
-            d = 1  # how quickly to taper off the hills
-            t = random.choice([GRASS, STONE, BRICK])
-            for y in range(c, c + h):
-                for x in range(a - s, a + s + 1):
-                    for z in range(b - s, b + s + 1):
-                        if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-                            continue
-                        if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-                            continue
-                        self.add_block((x, y, z), t, immediate=False)
-                s -= d  # decrement side lenth so hills taper off
+    ...
 
 class Window(lib3d.Window):
-    def __init__(width=800, height=600, caption='Game', resizable=True):
-        super.__init__(width=width, height=height, caption=caption, resizable=resizable, model=World())
+    def __init__(self, width=800, height=600, caption='Game', resizable=True):
+        lib3d.Window.__init__(self, model_cls=World, width=width, height=height, caption=caption, resizable=resizable)
 
     def on_mouse_press(self, x, y, button, modifiers):
         """ Called when a mouse button is pressed. See pyglet docs for button
         amd modifier mappings.
-
+f
         Parameters
         ----------
         x, y : int
@@ -101,7 +64,7 @@ class Window(lib3d.Window):
             self.strafe[1] += 1
         elif symbol == key.SPACE:
             if self.dy == 0:
-                self.dy = JUMP_SPEED
+                self.dy = self.user_config.JUMP_SPEED
         elif symbol == key.ESCAPE:
             self.set_exclusive_mouse(False)
         elif symbol == key.TAB:
@@ -136,5 +99,6 @@ class Window(lib3d.Window):
         elif symbol == key.D:
             self.strafe[1] -= 1
 
-            
-lib3d.main(Window())
+
+if __name__ == "__main__":
+    lib3d.main(Window())

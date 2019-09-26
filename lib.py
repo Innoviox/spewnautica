@@ -12,27 +12,7 @@ from pyglet.gl import *
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
 
-TICKS_PER_SEC = 60
-
-# Size of sectors used to ease block loading.
-SECTOR_SIZE = 16
-
-WALKING_SPEED = 5
-FLYING_SPEED = 15
-
-GRAVITY = 20.0
-MAX_JUMP_HEIGHT = 1.0 # About the height of a block.
-# To derive the formula for calculating jump speed, first solve
-#    v_t = v_0 + a * t
-# for the time at which you achieve maximum height, where a is the acceleration
-# due to gravity and v_t = 0. This gives:
-#    t = - v_0 / a
-# Use t and the desired MAX_JUMP_HEIGHT to solve for v_0 (jump speed) in
-#    s = s_0 + v_0 * t + (a * t^2) / 2
-JUMP_SPEED = math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT)
-TERMINAL_VELOCITY = 50
-
-PLAYER_HEIGHT = 2
+from dataclasses import dataclass
 
 if sys.version_info[0] >= 3:
     xrange = range
@@ -74,13 +54,32 @@ def tex_coords(top, bottom, side):
     result.extend(side * 4)
     return result
 
-
 TEXTURE_PATH = 'texture.png'
 
-GRASS = tex_coords((1, 0), (0, 1), (0, 0))
-SAND = tex_coords((1, 1), (1, 1), (1, 1))
-BRICK = tex_coords((2, 0), (2, 0), (2, 0))
-STONE = tex_coords((2, 1), (2, 1), (2, 1))
+def make_2d_textures(width, height, path=TEXTURE_PATH):
+    # Makes textures that all have the same side
+    for i in range(width):
+        for j in range(height):
+            yield (i, j)
+
+def make_3d_textures(width, height, path=TEXTURE_PATH, special={}):
+    """
+    Makes 3d blocks out of a 2d texture sheet. Textures are counted as such:
+    2 5 8
+    1 4 7
+    0 3 6 and so forth. Special specifies (top, bottom, side)
+    For example, if the first texture parsed uses 2,1,0, then pass special
+    as {0: (2, 1, 0}. All other blocks have same top, bottom, and side.
+    """
+    textures = list(make_2d_textures(width, height, path=path))
+    for i, t in enumerate(textures):
+        yield tex_coords(*[textures[j] for j in special.get(i, (i, i, i))])
+
+# GRASS = tex_coords((1, 0), (0, 1), (0, 0))
+# SAND = tex_coords((1, 1), (1, 1), (1, 1))
+# BRICK = tex_coords((2, 0), (2, 0), (2, 0))
+# STONE = tex_coords((2, 1), (2, 1), (2, 1))
+GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
 
 FACES = [
     ( 0, 1, 0),
@@ -113,7 +112,7 @@ def normalize(position, func = lambda i: int(round(i))): # func=round_to_base):
     return (x, y, z)
 
 
-def sectorize(position):
+def sectorize(position, SECTOR_SIZE=16):
     """ Returns a tuple representing the sector for the given `position`.
 
     Parameters
@@ -129,9 +128,34 @@ def sectorize(position):
     x, y, z = x // SECTOR_SIZE, y // SECTOR_SIZE, z // SECTOR_SIZE
     return (x, 0, z)
 
+@dataclass
+class Config:
+    TICKS_PER_SEC = 60
+
+    # Size of sectors used to ease block loading.
+    SECTOR_SIZE = 16
+
+    WALKING_SPEED = 5
+    FLYING_SPEED = 15
+
+    GRAVITY = 20.0
+    MAX_JUMP_HEIGHT = 1.0  # About the height of a block.
+    # To derive the formula for calculating jump speed, first solve
+    #    v_t = v_0 + a * t
+    # for the time at which you achieve maximum height, where a is the acceleration
+    # due to gravity and v_t = 0. This gives:
+    #    t = - v_0 / a
+    # Use t and the desired MAX_JUMP_HEIGHT to solve for v_0 (jump speed) in
+    #    s = s_0 + v_0 * t + (a * t^2) / 2
+    JUMP_SPEED = math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT)
+    TERMINAL_VELOCITY = 50
+
+    PLAYER_HEIGHT = 2
+
+
 class Model(object):
 
-    def __init__(self):
+    def __init__(self, user_config=Config()):
 
         # A Batch is a collection of vertex lists for batched rendering.
         self.batch = pyglet.graphics.Batch()
@@ -155,7 +179,7 @@ class Model(object):
         # Simple function queue implementation. The queue is populated with
         # _show_block() and _hide_block() calls
         self.queue = deque()
-
+        self.user_config = user_config
         self._initialize()
 
     def _initialize(self):
@@ -189,7 +213,7 @@ class Model(object):
             h = random.randint(1, 6)  # height of the hill
             s = random.randint(4, 8)  # 2 * s is the side length of the hill
             d = 1  # how quickly to taper off the hills
-            t = random.choice([GRASS, STONE, BRICK])
+            t = random.choice([GRASS, SAND, BRICK])
             for y in range(c, c + h):
                 for x in range(a - s, a + s + 1):
                     for z in range(b - s, b + s + 1):
@@ -271,7 +295,7 @@ class Model(object):
         if position in self.world:
             self.remove_block(position, immediate)
         self.world[position] = texture
-        self.sectors.setdefault(sectorize(position), []).append(position)
+        self.sectors.setdefault(sectorize(position, SECTOR_SIZE=self.user_config.SECTOR_SIZE), []).append(position)
         if immediate:
             if self.exposed(position):
                 self.show_block(position)
@@ -444,7 +468,7 @@ class Model(object):
 
         """
         start = time.perf_counter()
-        while self.queue and time.perf_counter() - start < 1.0 / TICKS_PER_SEC:
+        while self.queue and time.perf_counter() - start < 1.0 / self.user_config.TICKS_PER_SEC:
             self._dequeue()
 
     def process_entire_queue(self):
@@ -467,8 +491,7 @@ class Model(object):
 
 
 class Window(pyglet.window.Window):
-
-    def __init__(self, *args, model=None, **kwargs):
+    def __init__(self, *args, model_cls=Model, user_config=Config(), **kwargs):
         super(Window, self).__init__(*args, **kwargs)
 
         # Whether or not the window exclusively captures the mouse.
@@ -518,7 +541,8 @@ class Window(pyglet.window.Window):
             key._6, key._7, key._8, key._9, key._0]
 
         # Instance of the model that handles the world.
-        self.model = model if model else Model()
+        self.user_config = user_config
+        self.model = model_cls(user_config=user_config)
 
         # The label that is displayed in the top left of the canvas.
         self.label = pyglet.text.Label('', font_name='Arial', font_size=18,
@@ -526,8 +550,8 @@ class Window(pyglet.window.Window):
             color=(0, 0, 0, 255))
 
         # This call schedules the `update()` method to be called
-        # TICKS_PER_SEC. This is the main game event loop.
-        pyglet.clock.schedule_interval(self.update, 1.0 / TICKS_PER_SEC)
+        # self.user_config.TICKS_PER_SEC. This is the main game event loop.
+        pyglet.clock.schedule_interval(self.update, 1.0 / self.user_config.TICKS_PER_SEC)
 
         self.move_obj = False
 
@@ -628,7 +652,7 @@ class Window(pyglet.window.Window):
 
         """
         # walking
-        speed = FLYING_SPEED if self.flying else WALKING_SPEED
+        speed = self.user_config.FLYING_SPEED if self.flying else self.user_config.WALKING_SPEED
         d = dt * speed # distance covered this tick.
         dx, dy, dz = self.get_motion_vector()
         # New position in space, before accounting for gravity.
@@ -638,12 +662,12 @@ class Window(pyglet.window.Window):
             # Update your vertical speed: if you are falling, speed up until you
             # hit terminal velocity; if you are jumping, slow down until you
             # start falling.
-            self.dy -= dt * GRAVITY
-            self.dy = max(self.dy, -TERMINAL_VELOCITY)
+            self.dy -= dt * self.user_config.GRAVITY
+            self.dy = max(self.dy, -self.user_config.TERMINAL_VELOCITY)
             dy += self.dy * dt
         # collisions
         x, y, z = self.position
-        x, y, z = self.collide((x + dx, y + dy, z + dz), PLAYER_HEIGHT)
+        x, y, z = self.collide((x + dx, y + dy, z + dz), self.user_config.PLAYER_HEIGHT)
         self.position = (x, y, z)
 
     def collide(self, position, height):
@@ -766,7 +790,7 @@ class Window(pyglet.window.Window):
             self.strafe[1] += 1
         elif symbol == key.SPACE:
             if self.dy == 0:
-                self.dy = JUMP_SPEED
+                self.dy = self.user_config.JUMP_SPEED
         elif symbol == key.ESCAPE:
             self.set_exclusive_mouse(False)
         elif symbol == key.TAB:
@@ -915,7 +939,7 @@ def setup_fog():
 
 
 def setup():
-    """ Basic OpenGL configuration.
+    """ Basic OpenGL user_configuration.
 
     """
     # Set the color of "clear", i.e. the sky, in rgba.
