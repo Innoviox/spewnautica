@@ -1,10 +1,19 @@
 import lib as lib3d
-from lib import key, mouse, pyglet, make_3d_textures
+from lib import key, mouse, pyglet, make_3d_textures, OBJECTS
 
 GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
 
 class World(lib3d.Model):
-    ...
+    def _initialize(self):
+        super()._initialize()
+        obj = OBJECTS["fish"]
+        print(obj.meshes)
+        # obj.translate(0, 0, 0)
+        # obj.rotate(90, 1, 0, 0)
+        # obj.scale(10000, 10000, 10000)
+        obj.add_to(self.batch)
+        print(obj)
+        print(self.batch)
 
 class Window(lib3d.Window):
     def __init__(self, width=800, height=600, caption='Game', resizable=True):
