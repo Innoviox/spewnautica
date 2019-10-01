@@ -7,6 +7,8 @@ import time
 import numpy
 import os
 
+from pywavefront import visualization
+from pywavefront import Wavefront
 from collections import deque
 from pyglet import image
 from pyglet.gl import *
@@ -98,7 +100,11 @@ PRECISION = 0.1
 OBJECTS = {}
 for obj in os.listdir("assets/models"):
     # OBJECTS[obj] = rc.WavefrontReader(f"assets/models/{obj}/obj/{obj}.obj")
-    OBJECTS[obj] = OBJ(f"assets/models/{obj}/obj/{obj}.obj")
+    # OBJECTS[obj] = OBJ(f"assets/models/{obj}/obj/{obj}.obj")
+    scene = Wavefront(f"assets/models/{obj}/obj/{obj}.obj")
+    scene.parse()
+
+    OBJECTS[obj] = scene
 
 def round_to_base(x, base=PRECISION):
     return round(base * round(x/base), 1)

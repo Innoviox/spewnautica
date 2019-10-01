@@ -1,5 +1,5 @@
 import lib as lib3d
-from lib import key, mouse, pyglet, make_3d_textures, OBJECTS
+from lib import key, mouse, pyglet, make_3d_textures, OBJECTS, visualization as obj_draw
 
 GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
 
@@ -8,11 +8,17 @@ class World(lib3d.Model):
         super()._initialize()
         obj = OBJECTS["fish"]
         print(obj.meshes)
+        print(dir(obj))
         # obj.translate(0, 0, 0)
         # obj.rotate(90, 1, 0, 0)
-        # obj.scale(10000, 10000, 10000)
-        obj.add_to(self.batch)
+        # obj.scale(0.1, 0.1, 0.1)
+        # obj.add_to(self.batch)
         print(obj)
+        # obj.meshes["FISH_Plane"].draw()
+        # obj.draw()
+        obj_draw.draw(obj)
+        # self.batch.draw(obj)
+
         print(self.batch)
 
 class Window(lib3d.Window):
