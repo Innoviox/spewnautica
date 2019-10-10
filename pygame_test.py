@@ -4,8 +4,12 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
+from lib import make_3d_textures
 # import pyglet
 import os
+
+GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
+
 def load_object(name, **t):
     obj = OBJ(name, swapyz=True, transformations=Transformations.from_dict(t))
     return obj
@@ -23,14 +27,22 @@ class World:
         self._setup()
 
     def _setup(self):
-        # obj = objects.fish()
-        #
+        for i, t in zip(range(4), [GRASS, SAND, BRICK, STONE]):
+            cube = objects.cube(texture=t)
+            cube.translate(i, 0, 0)
+            self.add_obj(cube)
+
+        # self.add_obj(objects.fish())
+
         # obj.translate(5, 0, 0)
         # obj.scale(0.1, 0.1, 0.1)
         # obj.rotate(90, 0, 0, 1)
         # self.world.append(obj)
         # self.world.append(objects.fish(scale=(0.1,0.1,0.1)))
         # self.batch
+
+    def add_obj(self, obj):
+        self.world.append(obj)
 
     def render(self):
         for obj in self.world:
@@ -76,7 +88,7 @@ class Game:
         glFogf(GL_FOG_START, 20.0)
         glFogf(GL_FOG_END, 60.0)
         glClearColor(0.5, 0.69, 1.0, 1)
-        glEnable(GL_CULL_FACE)
+        # glEnable(GL_CULL_FACE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 

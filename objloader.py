@@ -30,15 +30,33 @@ def MTL(filename):
                 GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                 GL_LINEAR)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ix, iy, 0, GL_RGBA,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ix, iy, 0, GL_RGBA,
                 GL_UNSIGNED_BYTE, image)
         else:
             mtl[values[0]] = map(float, values[1:])
     return contents
 
+def load_texture():
+    surf = pygame.image.load("assets/texture.png")
+    image = pygame.image.tostring(surf, 'RGB', 1)
+    ix, iy = surf.get_rect().size
+    texture_image = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, texture_image)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+        GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+        GL_LINEAR)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ix, iy, 0, GL_RGB,
+        GL_UNSIGNED_BYTE, image)
+    return texture_image
+
+
+
+
 class Transformations:
     def __init__(self):
         self.transforms = euclid.Matrix4.new_identity()
+        self.mtl = None
 
     def translate(self, x, y, z):
         self.transforms.translate(x, y, z)
@@ -53,6 +71,15 @@ class Transformations:
         self.normalize = True
         return self
 
+    def texture(self, *t):
+        mtl = list(t)
+        print(mtl)
+        self.mtl =[]
+        for i in range(0, len(mtl), 2):
+            self.mtl.append([mtl[i], mtl[i+1]])
+        print(self.mtl)
+        return self
+
     def _do(self, s, *args):
         getattr(self, s)(*args)
 
@@ -61,7 +88,6 @@ class Transformations:
         t = cls()
         for tr, vals in d.items():
             t._do(tr, *vals)
-            # getattr(t, tr)(*vals)
         return t
 import os
 class OBJ:
@@ -119,6 +145,10 @@ class OBJ:
                     else:
                         norms.append(0)
                 self.faces.append((face, norms, texcoords, material))
+        if transformations.mtl:
+            self.texcoords = transformations.mtl
+        os.chdir("../../../../")
+        texture_image = load_texture()
 
         self.gl_list = glGenLists(1)
         glNewList(self.gl_list, GL_COMPILE)
@@ -126,12 +156,17 @@ class OBJ:
         glFrontFace(GL_CCW)
         for face in self.faces:
             vertices, normals, texture_coords, material = face
-            mtl = self.mtl[material]
+            try:
+                mtl = self.mtl[material]
+            except AttributeError:
+                mtl = {'texture_Kd': texture_image}
             if 'texture_Kd' in mtl:
                 # use diffuse texmap
                 glBindTexture(GL_TEXTURE_2D, mtl['texture_Kd'])
-            else:
+            # else:
                 # just use diffuse colour
+            #     glColor(*mtl['Kd'])
+            elif 'Kd' in mtl:
                 glColor(*mtl['Kd'])
 
             glBegin(GL_POLYGON)
@@ -139,13 +174,14 @@ class OBJ:
                 if normals[i] > 0:
                     glNormal3fv(self.normals[normals[i] - 1])
                 if texture_coords[i] > 0:
+                    print("HI", self.texcoords[texture_coords[i] - 1])
                     glTexCoord2fv(self.texcoords[texture_coords[i] - 1])
                 glVertex3fv(self.vertices[vertices[i] - 1])
             glEnd()
         glDisable(GL_TEXTURE_2D)
         glEndList()
 
-        os.chdir("../../../../")
+
 
     def _reinit(self):
         self.__init__(self.__fn, self.__s, self.transformations)
@@ -160,6 +196,10 @@ class OBJ:
 
     def translate(self, *a):
         self.transformations._do('translate', *a)
+        self._reinit()
+
+    def texture(self, t):
+        self.transformations._do('texture', t)
         self._reinit()
 
 
