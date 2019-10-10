@@ -73,11 +73,9 @@ class Transformations:
 
     def texture(self, *t):
         mtl = list(t)
-        print(mtl)
         self.mtl =[]
         for i in range(0, len(mtl), 2):
             self.mtl.append([mtl[i], mtl[i+1]])
-        print(self.mtl)
         return self
 
     def _do(self, s, *args):
@@ -174,7 +172,6 @@ class OBJ:
                 if normals[i] > 0:
                     glNormal3fv(self.normals[normals[i] - 1])
                 if texture_coords[i] > 0:
-                    print("HI", self.texcoords[texture_coords[i] - 1])
                     glTexCoord2fv(self.texcoords[texture_coords[i] - 1])
                 glVertex3fv(self.vertices[vertices[i] - 1])
             glEnd()
