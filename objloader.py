@@ -53,16 +53,25 @@ class Transformations:
         self.normalize = True
         return self
 
+    def _do(self, s, *args):
+        getattr(self, s)(*args)
+
     @classmethod
     def from_dict(cls, d: dict):
         t = cls()
         for tr, vals in d.items():
-            getattr(t, tr)(*vals)
+            t._do(tr, *vals)
+            # getattr(t, tr)(*vals)
         return t
-
+import os
 class OBJ:
-    def __init__(self, filename, swapyz=False, transformations=Transformations()):
+    def __init__(self, name, swapyz=False, transformations=Transformations()):
+        print("initializing", transformations.transforms)
         """Loads a Wavefront OBJ file. """
+        os.chdir(f"assets/models/{name}/obj")
+        filename = f"{name}.obj"
+        self.__fn, self.__s = name, swapyz
+
         self.vertices = []
         self.normals = []
         self.texcoords = []
@@ -136,6 +145,14 @@ class OBJ:
             glEnd()
         glDisable(GL_TEXTURE_2D)
         glEndList()
+
+        for i in ['scale', 'rotate', 'translate']:
+            def x(*a):
+                self.transformations._do(i, *a)
+                self.__init__(self.__fn, self.__s, self.transformations)
+            setattr(self, i, x)
+        os.chdir("../../../../")
+
 
 
 

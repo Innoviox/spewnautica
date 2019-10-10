@@ -7,9 +7,7 @@ from objloader import *
 # import pyglet
 import os
 def load_object(name, **t):
-    os.chdir(f"assets/models/{name}/obj")
-    obj = OBJ(f"{name}.obj", swapyz=True, transformations=Transformations.from_dict(t))
-    os.chdir("../../../../")
+    obj = OBJ(name, swapyz=True, transformations=Transformations.from_dict(t))
     return obj
 
 class ObjectDict(dict):
@@ -25,9 +23,10 @@ class World:
         self._setup()
 
     def _setup(self):
-        self.world.append(objects.fish())
-        self.world.append(objects.fish(translate=(1, 0, 0)))
-        self.world.append(objects.fish(rotate=(50, 1, 0, 0)))
+        obj = objects.fish()
+        obj.scale(0.1, 0.1, 0.1)
+        self.world.append(obj)
+        self.world.append(objects.fish(translate=(5, 0, 0)))
         # self.batch
 
     def render(self):
