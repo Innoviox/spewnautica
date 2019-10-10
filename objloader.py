@@ -1,6 +1,7 @@
 import pygame
 from OpenGL.GL import *
-
+import lib_euclid as euclid
+import math
 import builtins
 map = lambda a, b: list(builtins.map(a, b)) # fix python 2 map
 
@@ -35,13 +36,39 @@ def MTL(filename):
             mtl[values[0]] = map(float, values[1:])
     return contents
 
+class Transformations:
+    def __init__(self):
+        self.transforms = euclid.Matrix4.new_identity()
+
+    def translate(self, x, y, z):
+        self.transforms.translate(x, y, z)
+        return self
+
+    def rotate(self, angle, x, y, z):
+        self.transforms.rotate_axis(math.pi*angle/180.0, euclid.Vector3(x, y, z))
+        return self
+
+    def scale(self, x, y, z):
+        self.transforms.scale(x, y, z)
+        self.normalize = True
+        return self
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        t = cls()
+        for tr, vals in d.items():
+            getattr(t, tr)(*vals)
+        return t
+
 class OBJ:
-    def __init__(self, filename, swapyz=False):
+    def __init__(self, filename, swapyz=False, transformations=Transformations()):
         """Loads a Wavefront OBJ file. """
         self.vertices = []
         self.normals = []
         self.texcoords = []
         self.faces = []
+
+        self.transformations = transformations
 
         material = None
         for line in open(filename, "r"):
@@ -52,11 +79,15 @@ class OBJ:
                 v = map(float, values[1:4])
                 if swapyz:
                     v = v[0], v[2], v[1]
+                x, y, z = v
+                v = list(self.transformations.transforms * euclid.Point3(x, y, z))
                 self.vertices.append(v)
             elif values[0] == 'vn':
                 v = map(float, values[1:4])
                 if swapyz:
                     v = v[0], v[2], v[1]
+                x, y, z = v
+                v = list(self.transformations.transforms * euclid.Point3(x, y, z))
                 self.normals.append(v)
             elif values[0] == 'vt':
                 self.texcoords.append(map(float, values[1:3]))
@@ -87,7 +118,6 @@ class OBJ:
         glFrontFace(GL_CCW)
         for face in self.faces:
             vertices, normals, texture_coords, material = face
-
             mtl = self.mtl[material]
             if 'texture_Kd' in mtl:
                 # use diffuse texmap
@@ -106,5 +136,6 @@ class OBJ:
             glEnd()
         glDisable(GL_TEXTURE_2D)
         glEndList()
+
 
 
