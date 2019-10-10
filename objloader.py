@@ -66,7 +66,6 @@ class Transformations:
 import os
 class OBJ:
     def __init__(self, name, swapyz=False, transformations=Transformations()):
-        print("initializing", transformations.transforms)
         """Loads a Wavefront OBJ file. """
         os.chdir(f"assets/models/{name}/obj")
         filename = f"{name}.obj"
@@ -146,13 +145,22 @@ class OBJ:
         glDisable(GL_TEXTURE_2D)
         glEndList()
 
-        for i in ['scale', 'rotate', 'translate']:
-            def x(*a):
-                self.transformations._do(i, *a)
-                self.__init__(self.__fn, self.__s, self.transformations)
-            setattr(self, i, x)
         os.chdir("../../../../")
 
+    def _reinit(self):
+        self.__init__(self.__fn, self.__s, self.transformations)
+
+    def scale(self, *a):
+        self.transformations._do('scale', *a)
+        self._reinit()
+
+    def rotate(self, *a):
+        self.transformations._do('rotate', *a)
+        self._reinit()
+
+    def translate(self, *a):
+        self.transformations._do('translate', *a)
+        self._reinit()
 
 
 

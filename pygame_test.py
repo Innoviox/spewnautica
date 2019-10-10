@@ -23,10 +23,13 @@ class World:
         self._setup()
 
     def _setup(self):
-        obj = objects.fish()
-        obj.scale(0.1, 0.1, 0.1)
-        self.world.append(obj)
-        self.world.append(objects.fish(translate=(5, 0, 0)))
+        # obj = objects.fish()
+        #
+        # obj.translate(5, 0, 0)
+        # obj.scale(0.1, 0.1, 0.1)
+        # obj.rotate(90, 0, 0, 1)
+        # self.world.append(obj)
+        # self.world.append(objects.fish(scale=(0.1,0.1,0.1)))
         # self.batch
 
     def render(self):
