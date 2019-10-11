@@ -5,6 +5,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
 from lib import make_3d_textures
+from OpenGL.raw.GL.NV import occlusion_query as ou
 # import pyglet
 import os
 import random
@@ -24,6 +25,7 @@ objects = ObjectDict()
 class World:
     def __init__(self):
         self.world = []
+        self.queue = []
         # self.batch = pyglet.graphics.Batch()
         self._setup()
 
@@ -47,8 +49,8 @@ class World:
         for x in range(-n, n + 1, s):
             for y in range(-n, n + 1, s):
                 # create a layer stone an grass everywhere.
-                self.world.append(objects.cube(texture=GRASS, translate=(x, y, z)))
-                self.world.append(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
+                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
+                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
                 # if x in (-n, n) or z in (-n, n):
                 #     # create outer walls.
                 #     for dy in range(-2, 3):
@@ -77,7 +79,12 @@ class World:
 
 
     def add_obj(self, obj):
-        self.world.append(obj)
+        self.queue.append(lambda: self.world.append(obj))
+
+    def dequeue(self, n=1):
+        while self.queue and n > 0:
+            self.queue.pop()()
+            n -= 1
 
     def render(self):
         for obj in self.world:
@@ -162,6 +169,7 @@ class Game:
 
     def tick(self):
         self.clock.tick(30)
+        self.world.dequeue()
         for e in pygame.event.get():
             self.handle_input(e)
         self.handle_keys(pygame.key.get_pressed())

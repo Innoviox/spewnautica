@@ -56,19 +56,26 @@ def load_texture():
 class Transformations:
     def __init__(self):
         self.transforms = euclid.Matrix4.new_identity()
+        self.translation = 0, 0, 0
+        self.rotation = []
+        self.scale = 1, 1, 1
         self.mtl = None
 
     def translate(self, x, y, z):
         self.transforms.translate(x, y, z)
+        a, b, c = self.translation
+        self.translation = (a + x, b + y, c + z)
         return self
 
     def rotate(self, angle, x, y, z):
         self.transforms.rotate_axis(math.pi*angle/180.0, euclid.Vector3(x, y, z))
+        self.rotation.append((angle, x, y, z))
         return self
 
     def scale(self, x, y, z):
         self.transforms.scale(x, y, z)
-        self.normalize = True
+        a, b, c = self.scale
+        self.scale = (a * x, b * y, c * z)
         return self
 
     def texture(self, *t):
