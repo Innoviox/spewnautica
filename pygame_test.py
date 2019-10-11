@@ -7,10 +7,11 @@ from objloader import *
 from lib import make_3d_textures
 # from OpenGL.raw.GL.NV import occlusion_query as ou
 import pyglet
+import time
 # import os
 import random
 GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
-
+TICKS_PER_SEC = 60
 def load_object(name, **t):
     obj = OBJ(name, swapyz=True, transformations=Transformations.from_dict(t))
     return obj
@@ -42,45 +43,48 @@ class World:
         # self.world.append(obj)
         # self.world.append(objects.fish(scale=(0.1,0.1,0.1)))
         # self.batch
-        # n = 80  # 1/2 width and height of world
-        # s = 1  # step size
-        # y = 0  # initial y height
-        # z = 0
-        # for x in range(-n, n + 1, s):
-        #     for y in range(-n, n + 1, s):
-        #         # create a layer stone an grass everywhere.
-        #         self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
-        #         self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
-        #         # if x in (-n, n) or z in (-n, n):
-        #         #     # create outer walls.
-        #         #     for dy in range(-2, 3):
-        #         #         self.world.append(objects.cube(texture=STONE, translate=(x, y + dy, z)))
-        #
+        n = 80  # 1/2 wid€th and height of world
+        s = 1  # step size
+        y = 0  # initial y height
+        z = 0
+        for x in range(-n, n + 1, s):
+            print(x)
+            for y in range(-n, n + 1, s):
+                # create a layer stone an grass everywhere.
+                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
+                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
+                # if x in (-n, n) or z in (-n, n):
+                #     # create outer walls.
+                #     for dy in range(-2, 3):
+                #         self.world.append(objects.cube(texture=STONE, translate=(x, y + dy, z)))
+
         # # generate the hills randomly
-        # o = n - 10
-        # for _ in range(120):
-        #     a = random.randint(-o, o)  # x position of the hill
-        #     b = random.randint(-o, o)  # z position of the hill
-        #     c = -1  # base of the hill
-        #     h = random.randint(1, 6)  # height of the hill
-        #     s = random.randint(4, 8)  # 2 * s is the side length of the hill
-        #     d = 1  # how quickly to taper off the hills
-        #     t = random.choice([GRASS, SAND, BRICK])
-        #     for y in range(c, c + h):
-        #         for x in range(a - s, a + s + 1):
-        #             for z in range(b - s, b + s + 1):
-        #                 if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-        #                     continue
-        #                 if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-        #                     continue
-        #                 # self.add_block((x, y, z), t, immediate=False)
-        #                 self.add_obj(objects.cube(texture=t, translate=(x, z, y)))
-        #         s -= d  # decrement side lenth so hills taper off
+        o = n - 10
+        for _ in range(120):
+            print(_)
+            a = random.randint(-o, o)  # x position of the hill
+            b = random.randint(-o, o)  # z position of the hill
+            c = -1  # base of the hill
+            h = random.randint(1, 6)  # height of the hill
+            s = random.randint(4, 8)  # 2 * s is the side length of the hill
+            d = 1  # how quickly to taper off the hills
+            t = random.choice([GRASS, SAND, BRICK])
+            for y in range(c, c + h):
+                for x in range(a - s, a + s + 1):
+                    for z in range(b - s, b + s + 1):
+                        if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
+                            continue
+                        if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
+                            continue
+                        # self.add_block((x, y, z), t, immediate=False)
+                        self.add_obj(objects.cube(texture=t, translate=(x, z, y)))
+                s -= d  # decrement side lenth so hills taper off
         print("initialized")
 
     def add_obj(self, obj):
         # self.queue.append(lambda: self.world.append(obj))
         self.queue.append(lambda:obj.add(self.batch))
+        # self.dequeue()
         # self.batch.add()
 
     def dequeue(self, n=1):
@@ -88,10 +92,26 @@ class World:
             self.queue.pop(0)()
             n -= 1
 
+    def empty_queue(self):
+        self.dequeue(n=len(self.queue))
+
+    def process_queue(self):
+        """ Process the entire queue while taking periodic breaks. This allows
+        the game loop to run smoothly. The queue contains calls to
+        _show_block() and _hide_block() so this method should be called if
+        add_block() or remove_block() was called with immediate=False
+
+        """
+        start = time.perf_counter()
+        while self.queue and time.perf_counter() - start < 1.0 / TICKS_PER_SEC:
+            self.dequeue()
+
     # def render(self):
     #     glCallLists([i.gl_list for i in self.world])
         # for obj in self.world:
         #     glCallList(obj.gl_list)
+
+
 
 class Game:
     def __init__(self):
@@ -109,6 +129,10 @@ class Game:
         self.tx, self.ty = (0, 0)
         self.zpos = 0
         self.rotate = self.move = False
+
+        pyglet.clock.schedule_interval(self.tick, 1.0 / TICKS_PER_SEC)
+
+        self.world.empty_queue()
 
     def _setup(self):
         # Call a bunch of OpenGL methods.
@@ -171,8 +195,8 @@ class Game:
             self.tx -= 10
 
     def tick(self):
-        self.clock.tick(30)
-        self.world.dequeue(50)
+        # self.clock.tick(30)
+        self.world.process_queue()
         for e in pygame.event.get():
             self.handle_input(e)
         self.handle_keys(pygame.key.get_pressed())
@@ -185,7 +209,6 @@ class Game:
         glTranslate(self.tx / 20., self.ty / 20., - self.zpos / 20.)
         glRotate(self.ry, 1, 0, 0)
         glRotate(self.rx, 0, 1, 0)
-        # glCallList(obj.gl_list)
 
         self.world.render()
 
