@@ -4,7 +4,9 @@ import lib_euclid as euclid
 import math
 import builtins
 map = lambda a, b: list(builtins.map(a, b)) # fix python 2 map
-
+from pyglet import image
+# from pyglet.gl import *
+from pyglet.graphics import TextureGroup
 
 def MTL(filename):
     contents = {}
@@ -25,6 +27,7 @@ def MTL(filename):
             image = pygame.image.tostring(surf, 'RGBA', 1)
             ix, iy = surf.get_rect().size
             texid = mtl['texture_Kd'] = glGenTextures(1)
+            contents['map_Kd'] = mtl['map_Kd']
             glBindTexture(GL_TEXTURE_2D, texid)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                 GL_LINEAR)
@@ -49,7 +52,6 @@ def load_texture():
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ix, iy, 0, GL_RGB,
         GL_UNSIGNED_BYTE, image)
     return texture_image
-
 
 
 
@@ -95,24 +97,34 @@ class Transformations:
             t._do(tr, *vals)
         return t
 import os
+TEX = None
+groups = {}
 class OBJ:
     __cache__ = {}
+
     def __init__(self, name, swapyz=False, transformations=Transformations()):
         """Loads a Wavefront OBJ file. """
-        os.chdir(f"assets/models/{name}/obj")
-        filename = f"{name}.obj"
+        global TEX
+        if not TEX:
+            TEX = load_texture()
+            groups['cube'] = TextureGroup(image.load("assets/texture.png").get_texture())
+
         self.__fn, self.__s = name, swapyz
         self.transformations = transformations
         if name in OBJ.__cache__:
             self.vertices, self.normals, self.texcoords, self.faces = OBJ.__cache__[name]
+            self.group = groups[name]
         else:
+            os.chdir(f"assets/models/{name}/obj")
+            file = open(f"{name}.obj", "r")
+
             self.vertices = []
             self.normals = []
             self.texcoords = []
             self.faces = []
 
             material = None
-            for line in open(filename, "r"):
+            for line in file:
                 if line.startswith('#'): continue
                 values = line.split()
                 if not values: continue
@@ -152,45 +164,66 @@ class OBJ:
                         else:
                             norms.append(0)
                     self.faces.append((face, norms, texcoords, material))
+            if material:
+                groups[name] = self.group = TextureGroup(image.load(self.mtl['map_Kd']).get_texture())
+            elif name == 'cube':
+                self.group = groups['cube']
+            os.chdir("../../../../")
             OBJ.__cache__[name] = (self.vertices[:], self.normals[:], self.texcoords[:], self.faces[:])
+
         if transformations.mtl:
             self.texcoords = transformations.mtl
         self.vertices = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.vertices)
         self.normals = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.normals)
-        os.chdir("../../../../")
-        texture_image = load_texture()
 
-        self.gl_list = glGenLists(1)
-        glNewList(self.gl_list, GL_COMPILE)
-        glEnable(GL_TEXTURE_2D)
-        glFrontFace(GL_CCW)
+        if False:
+            self.gl_list = glGenLists(1)
+            glNewList(self.gl_list, GL_COMPILE)
+            glEnable(GL_TEXTURE_2D)
+            glFrontFace(GL_CCW)
+            for face in self.faces:
+                vertices, normals, texture_coords, material = face
+                try:
+                    mtl = self.mtl[material]
+                except AttributeError:
+                    mtl = {'texture_Kd': TEX}
+                if 'texture_Kd' in mtl:
+                    # use diffuse texmap
+                    glBindTexture(GL_TEXTURE_2D, mtl['texture_Kd'])
+                # else:
+                    # just use diffuse colour
+                #     glColor(*mtl['Kd'])
+                elif 'Kd' in mtl:
+                    glColor(*mtl['Kd'])
+
+                glBegin(GL_POLYGON)
+                for i in range(len(vertices)):
+                    if normals[i] > 0:
+                        glNormal3fv(self.normals[normals[i] - 1])
+                    if texture_coords[i] > 0:
+                        glTexCoord2fv(self.texcoords[texture_coords[i] - 1])
+                    glVertex3fv(self.vertices[vertices[i] - 1])
+                glEnd()
+            glDisable(GL_TEXTURE_2D)
+            glEndList()
+
+    def add(self, batch):
+        # if self.__fn == 'cube': #len(self.vertices[0]) == 3:
+        typ = GL_QUADS
+        # else:
+        #     typ = GL_TRIANGLES
         for face in self.faces:
-            vertices, normals, texture_coords, material = face
-            try:
-                mtl = self.mtl[material]
-            except AttributeError:
-                mtl = {'texture_Kd': texture_image}
-            if 'texture_Kd' in mtl:
-                # use diffuse texmap
-                glBindTexture(GL_TEXTURE_2D, mtl['texture_Kd'])
-            # else:
-                # just use diffuse colour
-            #     glColor(*mtl['Kd'])
-            elif 'Kd' in mtl:
-                glColor(*mtl['Kd'])
-
-            glBegin(GL_POLYGON)
-            for i in range(len(vertices)):
-                if normals[i] > 0:
-                    glNormal3fv(self.normals[normals[i] - 1])
-                if texture_coords[i] > 0:
-                    glTexCoord2fv(self.texcoords[texture_coords[i] - 1])
-                glVertex3fv(self.vertices[vertices[i] - 1])
-            glEnd()
-        glDisable(GL_TEXTURE_2D)
-        glEndList()
-
-
+            _verts, norms, texc, mat = face
+            verts = [self.vertices[i - 1] for i in _verts]
+            texc = [self.texcoords[i - 1] for i in texc]
+            ex_verts = [i for v in verts for i in v]
+            batch.add(len(ex_verts) // 3,
+              typ,
+              self.group,
+              ('v3f/static', tuple(ex_verts)),
+              # ('n3f/static', tuple([i for n in self.normals for i in n])),
+              ('t2f/static', tuple([i for t in texc for i in t])),
+              )
 
     def _reinit(self):
         self.__init__(self.__fn, self.__s, self.transformations)

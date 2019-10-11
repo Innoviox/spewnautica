@@ -1,15 +1,14 @@
 import sys, pygame
-from pygame.locals import *
+# from pygame.locals import *
 from pygame.constants import *
-from OpenGL.GL import *
+# from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
 from lib import make_3d_textures
-from OpenGL.raw.GL.NV import occlusion_query as ou
-# import pyglet
-import os
+# from OpenGL.raw.GL.NV import occlusion_query as ou
+import pyglet
+# import os
 import random
-
 GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
 
 def load_object(name, **t):
@@ -26,7 +25,8 @@ class World:
     def __init__(self):
         self.world = []
         self.queue = []
-        # self.batch = pyglet.graphics.Batch()
+        self.batch = pyglet.graphics.Batch()
+        self.render = self.batch.draw
         self._setup()
 
     def _setup(self):
@@ -34,7 +34,7 @@ class World:
         #     cube = objects.cube(texture=t, translate=(i, 0, 0))
         #     self.add_obj(cube)
 
-        # self.add_obj(objects.fish())
+        self.add_obj(objects.fish())
 
         # obj.translate(5, 0, 0)
         # obj.scale(0.1, 0.1, 0.1)
@@ -42,21 +42,21 @@ class World:
         # self.world.append(obj)
         # self.world.append(objects.fish(scale=(0.1,0.1,0.1)))
         # self.batch
-        n = 5  # 1/2 width and height of world
-        s = 1  # step size
-        y = 0  # initial y height
-        z = 0
-        for x in range(-n, n + 1, s):
-            for y in range(-n, n + 1, s):
-                # create a layer stone an grass everywhere.
-                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
-                self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
-                # if x in (-n, n) or z in (-n, n):
-                #     # create outer walls.
-                #     for dy in range(-2, 3):
-                #         self.world.append(objects.cube(texture=STONE, translate=(x, y + dy, z)))
-
-        # generate the hills randomly
+        # n = 80  # 1/2 width and height of world
+        # s = 1  # step size
+        # y = 0  # initial y height
+        # z = 0
+        # for x in range(-n, n + 1, s):
+        #     for y in range(-n, n + 1, s):
+        #         # create a layer stone an grass everywhere.
+        #         self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
+        #         self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
+        #         # if x in (-n, n) or z in (-n, n):
+        #         #     # create outer walls.
+        #         #     for dy in range(-2, 3):
+        #         #         self.world.append(objects.cube(texture=STONE, translate=(x, y + dy, z)))
+        #
+        # # generate the hills randomly
         # o = n - 10
         # for _ in range(120):
         #     a = random.randint(-o, o)  # x position of the hill
@@ -74,21 +74,24 @@ class World:
         #                 if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
         #                     continue
         #                 # self.add_block((x, y, z), t, immediate=False)
-        #                 self.world.append(objects.cube(texture=t, translate=(x, y, z)))
+        #                 self.add_obj(objects.cube(texture=t, translate=(x, z, y)))
         #         s -= d  # decrement side lenth so hills taper off
-
+        print("initialized")
 
     def add_obj(self, obj):
-        self.queue.append(lambda: self.world.append(obj))
+        # self.queue.append(lambda: self.world.append(obj))
+        self.queue.append(lambda:obj.add(self.batch))
+        # self.batch.add()
 
     def dequeue(self, n=1):
         while self.queue and n > 0:
-            self.queue.pop()()
+            self.queue.pop(0)()
             n -= 1
 
-    def render(self):
-        for obj in self.world:
-            glCallList(obj.gl_list)
+    # def render(self):
+    #     glCallLists([i.gl_list for i in self.world])
+        # for obj in self.world:
+        #     glCallList(obj.gl_list)
 
 class Game:
     def __init__(self):
@@ -104,7 +107,7 @@ class Game:
 
         self.rx, self.ry = (0, 0)
         self.tx, self.ty = (0, 0)
-        self.zpos = 5
+        self.zpos = 0
         self.rotate = self.move = False
 
     def _setup(self):
@@ -154,8 +157,8 @@ class Game:
                 self.rx += i
                 self.ry += j
             if self.move:
-                self.tx += i
-                self.ty -= j
+                self.tx += i * 20
+                self.ty -= j * 20
 
     def handle_keys(self, keys):
         if keys[K_w]:
@@ -169,7 +172,7 @@ class Game:
 
     def tick(self):
         self.clock.tick(30)
-        self.world.dequeue()
+        self.world.dequeue(50)
         for e in pygame.event.get():
             self.handle_input(e)
         self.handle_keys(pygame.key.get_pressed())
