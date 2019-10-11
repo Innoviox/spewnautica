@@ -89,62 +89,67 @@ class Transformations:
         return t
 import os
 class OBJ:
+    __cache__ = {}
     def __init__(self, name, swapyz=False, transformations=Transformations()):
         """Loads a Wavefront OBJ file. """
         os.chdir(f"assets/models/{name}/obj")
         filename = f"{name}.obj"
         self.__fn, self.__s = name, swapyz
-
-        self.vertices = []
-        self.normals = []
-        self.texcoords = []
-        self.faces = []
-
         self.transformations = transformations
+        if name in OBJ.__cache__:
+            self.vertices, self.normals, self.texcoords, self.faces = OBJ.__cache__[name]
+        else:
+            self.vertices = []
+            self.normals = []
+            self.texcoords = []
+            self.faces = []
 
-        material = None
-        for line in open(filename, "r"):
-            if line.startswith('#'): continue
-            values = line.split()
-            if not values: continue
-            if values[0] == 'v':
-                v = map(float, values[1:4])
-                if swapyz:
-                    v = v[0], v[2], v[1]
-                x, y, z = v
-                v = list(self.transformations.transforms * euclid.Point3(x, y, z))
-                self.vertices.append(v)
-            elif values[0] == 'vn':
-                v = map(float, values[1:4])
-                if swapyz:
-                    v = v[0], v[2], v[1]
-                x, y, z = v
-                v = list(self.transformations.transforms * euclid.Point3(x, y, z))
-                self.normals.append(v)
-            elif values[0] == 'vt':
-                self.texcoords.append(map(float, values[1:3]))
-            elif values[0] in ('usemtl', 'usemat'):
-                material = values[1]
-            elif values[0] == 'mtllib':
-                self.mtl = MTL(values[1])
-            elif values[0] == 'f':
-                face = []
-                texcoords = []
-                norms = []
-                for v in values[1:]:
-                    w = v.split('/')
-                    face.append(int(w[0]))
-                    if len(w) >= 2 and len(w[1]) > 0:
-                        texcoords.append(int(w[1]))
-                    else:
-                        texcoords.append(0)
-                    if len(w) >= 3 and len(w[2]) > 0:
-                        norms.append(int(w[2]))
-                    else:
-                        norms.append(0)
-                self.faces.append((face, norms, texcoords, material))
+            material = None
+            for line in open(filename, "r"):
+                if line.startswith('#'): continue
+                values = line.split()
+                if not values: continue
+                if values[0] == 'v':
+                    v = map(float, values[1:4])
+                    if swapyz:
+                        v = v[0], v[2], v[1]
+                    x, y, z = v
+                    # v = list(self.transformations.transforms * euclid.Point3(x, y, z))
+                    self.vertices.append(v)
+                elif values[0] == 'vn':
+                    v = map(float, values[1:4])
+                    if swapyz:
+                        v = v[0], v[2], v[1]
+                    x, y, z = v
+                    # v = list(self.transformations.transforms * euclid.Point3(x, y, z))
+                    self.normals.append(v)
+                elif values[0] == 'vt':
+                    self.texcoords.append(map(float, values[1:3]))
+                elif values[0] in ('usemtl', 'usemat'):
+                    material = values[1]
+                elif values[0] == 'mtllib':
+                    self.mtl = MTL(values[1])
+                elif values[0] == 'f':
+                    face = []
+                    texcoords = []
+                    norms = []
+                    for v in values[1:]:
+                        w = v.split('/')
+                        face.append(int(w[0]))
+                        if len(w) >= 2 and len(w[1]) > 0:
+                            texcoords.append(int(w[1]))
+                        else:
+                            texcoords.append(0)
+                        if len(w) >= 3 and len(w[2]) > 0:
+                            norms.append(int(w[2]))
+                        else:
+                            norms.append(0)
+                    self.faces.append((face, norms, texcoords, material))
+            OBJ.__cache__[name] = (self.vertices[:], self.normals[:], self.texcoords[:], self.faces[:])
         if transformations.mtl:
             self.texcoords = transformations.mtl
+        self.vertices = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.vertices)
+        self.normals = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.normals)
         os.chdir("../../../../")
         texture_image = load_texture()
 
@@ -186,18 +191,22 @@ class OBJ:
     def scale(self, *a):
         self.transformations._do('scale', *a)
         self._reinit()
+        return self
 
     def rotate(self, *a):
         self.transformations._do('rotate', *a)
         self._reinit()
+        return self
 
     def translate(self, *a):
         self.transformations._do('translate', *a)
         self._reinit()
+        return self
 
     def texture(self, t):
         self.transformations._do('texture', t)
         self._reinit()
+        return self
 
 
 
