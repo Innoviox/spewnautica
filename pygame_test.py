@@ -24,13 +24,13 @@ class ObjectDict(dict):
 
 objects = ObjectDict()
 
-
-
 def get_object(s):
     if s in 'gsbo':
         return objects.cube(texture=texture_dict[s])
     elif s == 'f':
         return objects.fish()
+    elif s == '2':
+        return objects.fish2()
     print(s)
 
 class World:
@@ -61,58 +61,6 @@ class World:
                 cy += 1
             cy = 0
             cx += 1
-
-    #
-    # def _setup(self):
-    #     # for i, t in zip(range(4), [GRASS, SAND, BRICK, STONE]):
-    #     #     cube = objects.cube(texture=t, translate=(i, 0, 0))
-    #     #     self.add_obj(cube)
-    #
-    #     self.add_obj(objects.fish())
-    #
-    #     # obj.translate(5, 0, 0)
-    #     # obj.scale(0.1, 0.1, 0.1)
-    #     # obj.rotate(90, 0, 0, 1)
-    #     # self.world.append(obj)
-    #     # self.world.append(objects.fish(scale=(0.1,0.1,0.1)))
-    #     # self.batch
-    #     n = 80  # 1/2 wid€th and height of world
-    #     s = 1  # step size
-    #     y = 0  # initial y height
-    #     z = 0
-    #     for x in range(-n, n + 1, s):
-    #         # print(x)
-    #         for y in range(-n, n + 1, s):
-    #             # create a layer stone an grass everywhere.
-    #             self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
-    #             self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z - 1)))
-    #             # if x in (-n, n) or z in (-n, n):
-    #             #     # create outer walls.
-    #             #     for dy in range(-2, 3):
-    #             #         self.world.append(objects.cube(texture=STONE, translate=(x, y + dy, z)))
-    #
-    #     # # generate the hills randomly
-    #     o = n - 10
-    #     for _ in range(120):
-    #         # print(_)
-    #         a = random.randint(-o, o)  # x position of the hill
-    #         b = random.randint(-o, o)  # z position of the hill
-    #         c = -1  # base of the hill
-    #         h = random.randint(1, 6)  # height of the hill
-    #         s = random.randint(4, 8)  # 2 * s is the side length of the hill
-    #         d = 1  # how quickly to taper off the hills
-    #         t = random.choice([GRASS, SAND, BRICK])
-    #         for y in range(c, c + h):
-    #             for x in range(a - s, a + s + 1):
-    #                 for z in range(b - s, b + s + 1):
-    #                     if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-    #                         continue
-    #                     if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-    #                         continue
-    #                     # self.add_block((x, y, z), t, immediate=False)
-    #                     self.add_obj(objects.cube(texture=t, translate=(x, z, y)))
-    #             s -= d  # decrement side length so hills taper off
-    #     print("initialized")
 
     def add_obj(self, obj):
         # self.queue.append(lambda: self.world.append(obj))
