@@ -11,6 +11,7 @@ import time
 # import os
 import random
 GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
+texture_dict = dict(zip('gsbo', (GRASS, SAND, BRICK, STONE)))
 TICKS_PER_SEC = 60
 def load_object(name, **t):
     obj = OBJ(name, swapyz=True, transformations=Transformations.from_dict(t))
@@ -20,15 +21,47 @@ class ObjectDict(dict):
     def __getattr__(self, item):
         return lambda **t: load_object(item, **t)
 
+
 objects = ObjectDict()
 
+
+
+def get_object(s):
+    if s in 'gsbo':
+        return objects.cube(texture=texture_dict[s])
+    elif s == 'f':
+        return objects.fish()
+    print(s)
+
 class World:
-    def __init__(self):
+    def __init__(self, file):
         self.world = []
         self.queue = []
         self.batch = pyglet.graphics.Batch()
         self.render = self.batch.draw
-        self._setup()
+
+        self._initialize_from_file(file)
+        # self._setup()
+
+    def _initialize_from_file(self, file):
+        size, *lines = map(str.strip, open(file))
+        sx, sy, sz = map(int, size.split("x"))
+        cx = cy = cz = 0
+
+        for line in lines:
+            if line == "-":
+                cx = cy = 0
+                cz += 1
+                continue
+            for char in line:
+                if char == ':':   continue
+                elif char == ' ': pass
+                elif char == 'C': break
+                else: self.add_obj(get_object(char).translate(cx, cy, cz))
+                cy += 1
+            cy = 0
+            cx += 1
+
 
     def _setup(self):
         # for i, t in zip(range(4), [GRASS, SAND, BRICK, STONE]):
@@ -48,7 +81,7 @@ class World:
         y = 0  # initial y height
         z = 0
         for x in range(-n, n + 1, s):
-            print(x)
+            # print(x)
             for y in range(-n, n + 1, s):
                 # create a layer stone an grass everywhere.
                 self.add_obj(objects.cube(texture=GRASS, translate=(x, y, z)))
@@ -61,7 +94,7 @@ class World:
         # # generate the hills randomly
         o = n - 10
         for _ in range(120):
-            print(_)
+            # print(_)
             a = random.randint(-o, o)  # x position of the hill
             b = random.randint(-o, o)  # z position of the hill
             c = -1  # base of the hill
@@ -78,7 +111,7 @@ class World:
                             continue
                         # self.add_block((x, y, z), t, immediate=False)
                         self.add_obj(objects.cube(texture=t, translate=(x, z, y)))
-                s -= d  # decrement side lenth so hills taper off
+                s -= d  # decrement side length so hills taper off
         print("initialized")
 
     def add_obj(self, obj):
@@ -117,7 +150,7 @@ class Game:
         self.clock = pygame.time.Clock()
 
         self._setup()
-        self.world = World()
+        self.world = World(file="test_file.txt")
 
         self.rx, self.ry = (0, 0)
         self.tx, self.ty = (0, 0)
