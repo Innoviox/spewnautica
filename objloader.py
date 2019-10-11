@@ -171,11 +171,6 @@ class OBJ:
             os.chdir("../../../../")
             OBJ.__cache__[name] = (self.vertices[:], self.normals[:], self.texcoords[:], self.faces[:])
 
-        if transformations.mtl:
-            self.texcoords = transformations.mtl
-        self.vertices = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.vertices)
-        self.normals = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.normals)
-
         if False:
             self.gl_list = glGenLists(1)
             glNewList(self.gl_list, GL_COMPILE)
@@ -212,6 +207,11 @@ class OBJ:
         typ = GL_QUADS
         # else:
         #     typ = GL_TRIANGLES
+        if self.transformations.mtl:
+            self.texcoords = self.transformations.mtl
+        self.vertices = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.vertices)
+        self.normals = map(lambda i: list(self.transformations.transforms * euclid.Point3(i[0], i[1], i[2])), self.normals)
+
         for face in self.faces:
             _verts, norms, texc, mat = face
             verts = [self.vertices[i - 1] for i in _verts]

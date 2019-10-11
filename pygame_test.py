@@ -96,12 +96,6 @@ class World:
         self.dequeue(n=len(self.queue))
 
     def process_queue(self):
-        """ Process the entire queue while taking periodic breaks. This allows
-        the game loop to run smoothly. The queue contains calls to
-        _show_block() and _hide_block() so this method should be called if
-        add_block() or remove_block() was called with immediate=False
-
-        """
         start = time.perf_counter()
         while self.queue and time.perf_counter() - start < 1.0 / TICKS_PER_SEC:
             self.dequeue()
@@ -131,8 +125,6 @@ class Game:
         self.rotate = self.move = False
 
         pyglet.clock.schedule_interval(self.tick, 1.0 / TICKS_PER_SEC)
-
-        self.world.empty_queue()
 
     def _setup(self):
         # Call a bunch of OpenGL methods.
