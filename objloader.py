@@ -14,7 +14,6 @@ def MTL(filename):
     for line in open(filename, "r"):
         if line.startswith('#'): continue
         values = line.split()
-        # print(values)
         if not values: continue
         if values[0] == 'newmtl':
             mtl = contents[values[1]] = {}

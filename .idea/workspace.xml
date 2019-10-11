@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5929be38-fea3-4c33-a3d8-4537fd532b54" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/assets/models/nemo/obj/fish.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/models/nemo/obj/nemo.mtl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/models/nemo/obj/nemo.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/models/tang/obj/13006_Blue_Tang_v1_diff.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/models/tang/obj/tang.mtl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/models/tang/obj/tang.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/objloader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pygame_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_file.txt" beforeDir="false" afterPath="$PROJECT_DIR$/test_file.txt" afterDir="false" />
     </list>
@@ -62,14 +69,16 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/assets" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/assets/models/tang/obj" />
+      <recent name="$PROJECT_DIR$/assets/models/nemo/obj" />
       <recent name="$PROJECT_DIR$/assets/models/fish/obj" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/assets/fish" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/assets" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -180,7 +189,7 @@
       <workItem from="1570716800072" duration="3058000" />
       <workItem from="1570739185062" duration="10056000" />
       <workItem from="1570756685121" duration="250000" />
-      <workItem from="1570756939156" duration="7995000" />
+      <workItem from="1570756939156" duration="8568000" />
     </task>
     <servers />
   </component>
@@ -212,6 +221,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/spewnautica$pygame_test.coverage" NAME="pygame_test Coverage Results" MODIFIED="1570816398613" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/spewnautica$pygame_test.coverage" NAME="pygame_test Coverage Results" MODIFIED="1570816950661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

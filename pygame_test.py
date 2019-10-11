@@ -21,16 +21,18 @@ class ObjectDict(dict):
     def __getattr__(self, item):
         return lambda **t: load_object(item, **t)
 
-
 objects = ObjectDict()
+objmap = {'f': 'fish',
+          '2': 'fish2',
+          'n': 'nemo',
+          't': 'tang'}
 
 def get_object(s):
     if s in 'gsbo':
         return objects.cube(texture=texture_dict[s])
-    elif s == 'f':
-        return objects.fish()
-    elif s == '2':
-        return objects.fish2()
+    elif s in objmap:
+        return getattr(objects, objmap[s])()
+
     print(s)
 
 class World:
