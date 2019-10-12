@@ -42,7 +42,8 @@ class World:
         self.batch = pyglet.graphics.Batch()
         self.render = self.batch.draw
 
-        self._initialize_from_file(file)
+        self._initialize()
+        # self._initialize_from_file(file)
         # self._setup()
 
     def _initialize_from_file(self, file):
@@ -63,6 +64,12 @@ class World:
                 cy += 1
             cy = 0
             cx += 1
+            
+    def add_block(self, pos, texture, immediate):
+        """
+        Compatibility method for interacting with pylib3d
+        """
+        self.queue.append(lambda:objects.cube(texture=texture, translate=pos).add(self.batch))
 
     def add_obj(self, obj):
         # self.queue.append(lambda: self.world.append(obj))
