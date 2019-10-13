@@ -22,16 +22,29 @@ class ObjectDict(dict):
         return lambda **t: load_object(item, **t)
 
 objects = ObjectDict()
-objmap = {'f': 'fish',
-          '2': 'fish2',
-          'n': 'nemo',
-          't': 'tang'}
+objmap = {
+    'f': 'fish',
+    '2': 'fish2',
+    'n': 'nemo',
+    't': 'tang'
+}
+
+obj_transform_map = {
+    'n': {
+        'scale': (0.1, 0.1, 0.1),
+        'rotate': (90, 2, 1, 1)
+    },
+    't': {
+        'scale': (0.2, 0.2, 0.2),
+        'rotate': (90, 1, 0, 0)
+    }
+}
 
 def get_object(s):
     if s in 'gsbo':
         return objects.cube(texture=texture_dict[s])
     elif s in objmap:
-        return getattr(objects, objmap[s])()
+        return getattr(objects, objmap[s])().apply_transforms(obj_transform_map.get(s, {}))
 
     print(s)
 
@@ -42,8 +55,7 @@ class World:
         self.batch = pyglet.graphics.Batch()
         self.render = self.batch.draw
 
-        self._initialize()
-        # self._initialize_from_file(file)
+        self._initialize_from_file(file)
         # self._setup()
 
     def _initialize_from_file(self, file):
@@ -64,7 +76,7 @@ class World:
                 cy += 1
             cy = 0
             cx += 1
-            
+
     def add_block(self, pos, texture, immediate):
         """
         Compatibility method for interacting with pylib3d

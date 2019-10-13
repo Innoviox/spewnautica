@@ -59,7 +59,7 @@ class Transformations:
         self.transforms = euclid.Matrix4.new_identity()
         self.translation = 0, 0, 0
         self.rotation = []
-        self.scale = 1, 1, 1
+        self._scale = 1, 1, 1
         self.mtl = None
 
     def translate(self, x, y, z):
@@ -75,8 +75,8 @@ class Transformations:
 
     def scale(self, x, y, z):
         self.transforms.scale(x, y, z)
-        a, b, c = self.scale
-        self.scale = (a * x, b * y, c * z)
+        a, b, c = self._scale
+        self._scale = (a * x, b * y, c * z)
         return self
 
     def texture(self, *t):
@@ -95,6 +95,7 @@ class Transformations:
         for tr, vals in d.items():
             t._do(tr, *vals)
         return t
+
 import os
 TEX = None
 groups = {}
@@ -247,5 +248,10 @@ class OBJ:
         self._reinit()
         return self
 
+    def apply_transforms(self, ts):
+        for a, b in ts.items():
+            self.transformations._do(a, *b)
+        self._reinit()
+        return self
 
 

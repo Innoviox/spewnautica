@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="5929be38-fea3-4c33-a3d8-4537fd532b54" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/objloader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pygame_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_file.txt" beforeDir="false" afterPath="$PROJECT_DIR$/test_file.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -179,7 +181,8 @@
       <workItem from="1570739185062" duration="10056000" />
       <workItem from="1570756685121" duration="250000" />
       <workItem from="1570756939156" duration="8813000" />
-      <workItem from="1570894723904" duration="499000" />
+      <workItem from="1570894723904" duration="2204000" />
+      <workItem from="1571008051956" duration="629000" />
     </task>
     <servers />
   </component>
@@ -201,6 +204,13 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/objloader.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -211,6 +221,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/spewnautica$pygame_test.coverage" NAME="pygame_test Coverage Results" MODIFIED="1570895147563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/spewnautica$pygame_test.coverage" NAME="pygame_test Coverage Results" MODIFIED="1571008683671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
