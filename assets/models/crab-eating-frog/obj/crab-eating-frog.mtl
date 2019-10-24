@@ -12,5 +12,4 @@ newmtl 12268_banjofrog_
 	Kd 1.0000 1.0000 1.0000
 	Ks 0.1800 0.1800 0.1800
 	Ke 0.0000 0.0000 0.0000
-	map_Ka 12268_banjofrog_diffuse.jpg
-	map_Kd 12268_banjofrog_diffuse.jpg
+	map_Kd 12268_banjofrog_v1_L3.jpg

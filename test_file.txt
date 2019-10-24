@@ -1,10 +1,10 @@
 5x5x5
 -
-2
+c
 -
-n
+
 -
-t
+
 -
 ggggg
 ggggg

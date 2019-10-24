@@ -4,13 +4,14 @@ from pygame.constants import *
 # from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
-from lib import make_3d_textures
+import lib as lib3d
 # from OpenGL.raw.GL.NV import occlusion_query as ou
 import pyglet
 import time
 # import os
 import random
-GRASS, *_, SAND, BRICK, STONE = make_3d_textures(3, 2, special={0: (2, 1, 0)})
+
+GRASS, *_, SAND, BRICK, STONE = lib3d.make_3d_textures(3, 2, special={0: (2, 1, 0)})
 texture_dict = dict(zip('gsbo', (GRASS, SAND, BRICK, STONE)))
 TICKS_PER_SEC = 60
 def load_object(name, **t):
@@ -26,7 +27,8 @@ objmap = {
     'f': 'fish',
     '2': 'fish2',
     'n': 'nemo',
-    't': 'tang'
+    't': 'tang',
+    'c': 'crab-eating-frog'
 }
 
 obj_transform_map = {
@@ -37,6 +39,9 @@ obj_transform_map = {
     't': {
         'scale': (0.2, 0.2, 0.2),
         'rotate': (90, 1, 0, 0)
+    },
+    'c': {
+        'scale': (0.2, 0.2, 0.2)
     }
 }
 
@@ -77,15 +82,22 @@ class World:
             cy = 0
             cx += 1
 
+    def _add(self, obj):
+        def __add():
+            obj.add(self.batch)
+            self.world.append(lib3d.normalize(obj.vertices[0]))
+            print(lib3d.normalize(obj.vertices[0]))
+        return __add
+
     def add_block(self, pos, texture, immediate):
         """
         Compatibility method for interacting with pylib3d
         """
-        self.queue.append(lambda:objects.cube(texture=texture, translate=pos).add(self.batch))
+        self.queue.append(self._add(objects.cube(texture=texture, translate=pos)))
 
     def add_obj(self, obj):
         # self.queue.append(lambda: self.world.append(obj))
-        self.queue.append(lambda:obj.add(self.batch))
+        self.queue.append(self._add(obj))
         # self.dequeue()
         # self.batch.add()
 
@@ -194,7 +206,35 @@ class Game:
         for e in pygame.event.get():
             self.handle_input(e)
         self.handle_keys(pygame.key.get_pressed())
+        self.collide()
         self.draw()
+
+    def collide(self):
+        pad = 0.25
+        pos = [self.tx / 20, self.ty / 20, self.zpos / 20]
+        np = lib3d.normalize(pos)
+        for face in lib3d.FACES:
+            for i in range(3):
+                if not face[i]:
+                    continue
+
+                d = (pos[i] - np[i]) * face[i]
+                if d < pad:
+                    continue
+
+                for dy in range(2):
+                    op = list(np)
+                    op[1] -= dy
+                    op[i] += face[i]
+                    if tuple(op) not in self.world.world:
+                        continue
+                    print('a')
+                    pos[i] -= (d - pad) * face[i]
+                    if face == (0, -1, 0) or face == (0, 1, 0):
+                        self.dy = 0
+                    break
+        self.tx, self.ty, self.zpos = (pos[0] * 20, pos[1] * 20, pos[2] * 20)
+
 
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
