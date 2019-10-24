@@ -28,7 +28,8 @@ objmap = {
     '2': 'fish2',
     'n': 'nemo',
     't': 'tang',
-    'c': 'crab-eating-frog'
+    'c': 'crab-eating-frog',
+    'm': 'megalodon'
 }
 
 obj_transform_map = {
