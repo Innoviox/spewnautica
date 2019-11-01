@@ -8,6 +8,7 @@ import lib as lib3d
 # from OpenGL.raw.GL.NV import occlusion_query as ou
 import pyglet
 import time
+import math
 # import os
 import random
 
@@ -65,7 +66,7 @@ class World:
         # self._setup()
 
     def _initialize_from_file(self, file):
-        size, *lines = map(str.strip, open(file))
+        lines = map(str.strip, open(file))
         # sx, sy, sz = map(int, size.split("x"))
         cx = cy = cz = 0
 
@@ -87,7 +88,7 @@ class World:
         def __add():
             obj.add(self.batch)
             self.world.append(lib3d.normalize(obj.vertices[0]))
-            print(lib3d.normalize(obj.vertices[0]))
+            # print(lib3d.normalize(obj.vertices[0]))
         return __add
 
     def add_block(self, pos, texture, immediate):
@@ -120,6 +121,12 @@ class World:
         # for obj in self.world:
         #     glCallList(obj.gl_list)
 
+def dist(p1, p2):
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    return math.sqrt(sum([(x1 + x2) ** 2,
+                          (y1 + y2) ** 2,
+                          (z1 + z2) ** 2]))
 
 
 class Game:
@@ -214,27 +221,32 @@ class Game:
         pad = 0.25
         pos = [self.tx / 20, self.ty / 20, self.zpos / 20]
         np = lib3d.normalize(pos)
-        for face in lib3d.FACES:
-            for i in range(3):
-                if not face[i]:
-                    continue
 
-                d = (pos[i] - np[i]) * face[i]
-                if d < pad:
-                    continue
-
-                for dy in range(2):
-                    op = list(np)
-                    op[1] -= dy
-                    op[i] += face[i]
-                    if tuple(op) not in self.world.world:
-                        continue
-                    print('a')
-                    pos[i] -= (d - pad) * face[i]
-                    if face == (0, -1, 0) or face == (0, 1, 0):
-                        self.dy = 0
-                    break
-        self.tx, self.ty, self.zpos = (pos[0] * 20, pos[1] * 20, pos[2] * 20)
+        for w in self.world.world:
+            if dist(np, w) < pad:
+                print("collision")
+        # print(np)
+        # for face in lib3d.FACES:
+        #     for i in range(3):
+        #         if not face[i]:
+        #             continue
+        #
+        #         d = (pos[i] - np[i]) * face[i]
+        #         if d < pad:
+        #             continue
+        #
+        #         for dy in range(2):
+        #             op = list(np)
+        #             op[1] -= dy
+        #             op[i] += face[i]
+        #             if tuple(op) not in self.world.world:
+        #                 continue
+        #             print('a')
+        #             pos[i] -= (d - pad) * face[i]
+        #             if face == (0, -1, 0) or face == (0, 1, 0):
+        #                 self.dy = 0
+        #             break
+        # self.tx, self.ty, self.zpos = (pos[0] * 20, pos[1] * 20, pos[2] * 20)
 
 
     def draw(self):
