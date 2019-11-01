@@ -109,7 +109,7 @@ class OBJ:
             TEX = load_texture()
             groups['cube'] = TextureGroup(image.load("assets/texture.png").get_texture())
 
-        self.__fn, self.__s = name, swapyz
+        self._fn, self._s = name, swapyz
         self.transformations = transformations
         if name in OBJ.__cache__:
             self.vertices, self.normals, self.texcoords, self.faces = OBJ.__cache__[name]
@@ -203,7 +203,7 @@ class OBJ:
             glEndList()
 
     def add(self, batch):
-        # if self.__fn == 'cube': #len(self.vertices[0]) == 3:
+        # if self._fn == 'cube': #len(self.vertices[0]) == 3:
         typ = GL_QUADS
         # else:
         #     typ = GL_TRIANGLES
@@ -226,7 +226,7 @@ class OBJ:
               )
 
     def _reinit(self):
-        self.__init__(self.__fn, self.__s, self.transformations)
+        self.__init__(self._fn, self._s, self.transformations)
 
     def scale(self, *a):
         self.transformations._do('scale', *a)
