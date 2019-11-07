@@ -87,8 +87,7 @@ class World:
     def _add(self, obj):
         def __add():
             obj.add(self.batch)
-            print(obj._fn, obj.vertices[0])
-            self.world.append(obj.vertices[0])
+            self.world.append(obj) # .avg())
             # print(lib3d.normalize(obj.vertices[0]))
         return __add
 
@@ -125,9 +124,9 @@ class World:
 def distances(p1, p2):
     x1, y1, z1 = p1
     x2, y2, z2 = p2
-    return [(x1 + x2) ** 2,
-            (y1 + y2) ** 2,
-            (z1 + z2) ** 2]
+    return [abs(x1 - x2) ** 1,
+            abs(y1 - y2) ** 1,
+            abs(z1 - z2) ** 1]
 
 
 class Game:
@@ -143,7 +142,7 @@ class Game:
         self.world = World(file="test_file.txt")
 
         self.rx, self.ry = (0, 0)
-        self.tx, self.ty = (0, 0)
+        self.tx, self.ty = (10, 10)
         self.zpos = 0
         self.rotate = self.move = False
 
@@ -219,20 +218,15 @@ class Game:
         self.draw()
 
     def collide(self):
-        pad = 2
+        pad = 0.5
+        allpad = 2.0
         pos = [self.tx / 20, self.ty / 20, self.zpos / 20]
         print(pos)
 
         for w in self.world.world:
-            dists = distances(pos, w)
-            # print(math.sqrt(sum(dists)))
-            if not all(i < pad for i in dists):
-                continue
-            for i in range(3):
-                # if dists[i] < pad:
-                if pos[i] < w[i]:
-                    pos[i] += pad
-                else:
+            if w.contains(pos):
+                print("within")
+                for i in range(3):
                     pos[i] -= pad
 
         self.tx, self.ty, self.zpos = (pos[0] * 20, pos[1] * 20, pos[2] * 20)

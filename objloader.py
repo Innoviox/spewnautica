@@ -7,6 +7,7 @@ map = lambda a, b: list(builtins.map(a, b)) # fix python 2 map
 from pyglet import image
 # from pyglet.gl import *
 from pyglet.graphics import TextureGroup
+from operator import itemgetter
 
 def MTL(filename):
     contents = {}
@@ -225,6 +226,28 @@ class OBJ:
               ('t2f/static', tuple([i for t in texc for i in t])),
               )
 
+        maxx = max(self.vertices, key=itemgetter(0))[0]
+        minx = min(self.vertices, key=itemgetter(0))[0]
+        maxy = max(self.vertices, key=itemgetter(1))[1]
+        miny = min(self.vertices, key=itemgetter(1))[1]
+        maxz = max(self.vertices, key=itemgetter(2))[2]
+        minz = min(self.vertices, key=itemgetter(2))[2]
+
+        self._boundary = ((minx, maxx), (miny, maxy), (minz, maxz))
+
+    def avg(self):
+        a, b, c = 0, 0, 0
+        for i in self.vertices:
+            d, e, f = i
+            a += d
+            b += e
+            c += f
+        l = len(self.vertices)
+        a /= l
+        b /= l
+        c /= l
+        return (a, b, c)
+
     def _reinit(self):
         self.__init__(self._fn, self._s, self.transformations)
 
@@ -253,5 +276,13 @@ class OBJ:
             self.transformations._do(a, *b)
         self._reinit()
         return self
+
+    def contains(self, point):
+        for i, j in zip(point, self._boundary):
+            a, b = j
+            if not (a <= i <= b):
+                return False
+        return True
+
 
 
