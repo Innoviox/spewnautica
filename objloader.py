@@ -204,6 +204,7 @@ class OBJ:
             glEndList()
 
     def add(self, batch):
+        self.translate(-2, -2, -2)
         # if self._fn == 'cube': #len(self.vertices[0]) == 3:
         typ = GL_QUADS
         # else:
@@ -234,6 +235,8 @@ class OBJ:
         minz = min(self.vertices, key=itemgetter(2))[2]
 
         self._boundary = ((minx, maxx), (miny, maxy), (minz, maxz))
+
+        print(self._boundary)
 
     def avg(self):
         a, b, c = 0, 0, 0
@@ -281,6 +284,7 @@ class OBJ:
         for i, j in zip(point, self._boundary):
             a, b = j
             if not (a <= i <= b):
+                print(point, i, j)
                 return False
         return True
 
