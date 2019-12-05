@@ -1,38 +1,15 @@
 ## Sponge Blocks:
 10ish, randomly generate every so often
 
-PP1 (Purple Porifera 1):
 010,011
-
-PP2
 012,082,013
-
-PP3
 016,014,017
-
-Grass
 048,049
-
-GA1 (GreenAlgae1)
 032,033
-
-GA2
 030,028,031
-
-GA3
 034,033,083
-
-GA w starfish
 030,028,046,031
-
-GA w starfish
 030,028,047,031
-
-RockGrass
 084, 052
-
-DeadFish
 094,052,053
-
-DF2
 098,052,053
